@@ -1,0 +1,321 @@
+<div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div class="muted">Next Focus Sprint</div>
+            <div id="timer-display" class="big-timer">25:00</div>
+          </div>
+
+
+          {% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Snoozenot — Dashboard</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    /* Minimal dark theme styling — tweak as you like */
+    :root{
+      --bg:#0f1113; --card:#17181a; --muted:#bfc2c6; --accent:#ff7a2d;
+      --radius:14px;
+    }
+    html,body{height:100%; margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Arial; background:var(--bg); color:#fff;}
+    .container{max-width:1100px; margin:28px auto; padding:20px; display:grid; grid-template-columns:1fr 360px; gap:20px;}
+    header{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
+    .logo{font-weight:700; font-size:20px; letter-spacing:0.6px; display:flex; gap:10px; align-items:center}
+    .card{background:var(--card); border-radius:var(--radius); padding:18px; box-shadow: 0 6px 20px rgba(0,0,0,0.6);}
+    .big-timer{font-size:56px; text-align:center; padding:22px; border-radius:12px; background:#efe9dd11;}
+    button{background:transparent; border:0; color:var(--accent); font-weight:600; padding:8px 14px; border-radius:10px; cursor:pointer;}
+    .muted{color:var(--muted); font-size:14px;}
+    .tasks {display:flex; flex-direction:column; gap:8px; margin-top:12px;}
+    .task{display:flex; align-items:center; gap:12px; padding:10px; background:#00000022; border-radius:10px;}
+    .task input[type=checkbox]{width:18px;height:18px;}
+    .stats{display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-top:12px;}
+    .btn-row{display:flex; gap:8px; margin-top:12px;}
+    .right-col{display:flex; flex-direction:column; gap:12px;}
+    .small-btn{padding:12px 16px; background:#00000022; border-radius:8px; cursor:pointer; color:#fff;}
+    form.add{display:flex; gap:8px; margin-top:12px;}
+    input, textarea, select{background:#00000022; border:1px solid rgba(255,255,255,0.02); color:#fff; padding:8px; border-radius:8px;}
+    .footer-actions{display:flex; gap:8px; margin-top:12px; flex-direction:column;}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div>
+      <header>
+        <div class="logo">Snoozenot ⚡</div>
+        <div class="muted">Hey {{ Username }} 👋 • Streak: <strong style="color:#ff7a2d">{{ streak_days }} days</strong></div>
+      </header>
+
+      <!-- Focus Zone -->
+      <div class="card">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+          <div style="font-weight:700; font-size:18px;">Focus Zone</div>
+          <div class="muted">Stay on track, avoid distractions</div>
+          <div style="width:180px; display:flex; flex-direction:column; align-items:stretch;">
+            <div style="margin-bottom:8px; font-weight:600;">Today’s Mission</div>
+            <div class="muted">Pick 1–3 key wins. Finish small, feel big.</div>
+            <div class="btn-row" style="margin-top:auto;">
+              <button id="start-btn">Start</button>
+              <button id="pause-btn">Pause</button>
+              <button id="end-btn">End</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:18px; display:flex; gap:18px;">
+          <div style="flex:1">
+            <form class="add" method="post" action="{% url 'UserAuth:add_task' %}">
+              {% csrf_token %}
+              <input name="title" placeholder="Quick task (e.g. finish intro)" required />
+              <input type="hidden" name="category" value="work" />
+              <a href="{% url 'UserAuth:todo_list' %}" 
+              class="small-btn" 
+              style="background:var(--accent); border:0; display:inline-block; padding:8px 16px; color:white; text-decoration:none; border-radius:6px;">
+              Add</a>
+    <div class="tasks">
+              {% for t in tasks %}
+                <div class="task" data-id="{{ t.id }}">
+                  <input type="checkbox" class="task-check" {% if t.completed %}checked{% endif %}/>
+                  <div style="flex:1;">
+                    <div style="font-weight:600; {% if t.completed %}text-decoration:line-through; opacity:.7;{% endif %}">{{ t.title }}</div>
+                    <div class="muted" style="font-size:13px;">{{ t.category }} • Focused {{ t.focused_minutes }}m • Distracts {{ t.distraction_count }}</div>
+                  </div>
+                  <button class="del-btn" data-id="{{ t.id }}" title="delete">✕</button>
+                </div>
+                {% endfor %}
+            </div>
+          </div>
+
+          <div style="width:300px;">
+            <div class="card" style="margin-bottom:12px;">
+              <div style="font-weight:700; margin-bottom:6px;">Stats</div>
+              <div class="muted">Tasks completed</div>
+              <div style="font-size:20px; margin-top:6px;">{{ tasks_done }} / {{ total_tasks }}</div>
+              <div class="muted" style="margin-top:12px;">Time focused</div>
+              <div style="font-size:20px; margin-top:6px;">{{ time_focused }} minutes</div>
+              <div class="muted" style="margin-top:12px;">Distraction count</div>
+              <div style="font-size:20px; margin-top:6px;">{{ distraction_count }}</div>
+            </div>
+
+            <div class="card">
+              <div style="font-weight:700; margin-bottom:6px;">Quick actions</div>
+              <div class="footer-actions">
+                <button id="start-focus-task" class="small-btn">Start Focus Mode (selected task)</button>
+                <button id="view-stats" class="small-btn">View Stats</button>
+                <button id="reset-timer" class="small-btn">Reset Timer</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right column -->
+    <aside class="right-col">
+      <div class="card">
+        <div style="font-weight:700; margin-bottom:8px;">Motivation</div>
+        <div style="font-size:18px; margin-bottom:10px;">You don't need motivation — just start 💪</div>
+        <div class="muted">Daily reflection</div>
+        <form id="reflection-form" style="margin-top:8px;">
+          {% csrf_token %}
+          <textarea id="what-distracted" placeholder="What distracted you today?" rows="2"></textarea>
+          <textarea id="what-worked" placeholder="What worked?" rows="2" style="margin-top:8px;"></textarea>
+          <button type="button" id="save-reflection" class="small-btn" style="margin-top:8px;">Save Reflection</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <div style="font-weight:700; margin-bottom:8px;">Weekly snapshot</div>
+        <div class="muted">Work vs Procrastination (coming soon — analytics)</div>
+        <div style="height:120px; display:flex; align-items:flex-end; gap:6px; margin-top:12px;">
+          <!-- placeholders for bars -->
+          <div style="width:30px; height:30px; background:#222; border-radius:6px"></div>
+          <div style="width:30px; height:50px; background:#222; border-radius:6px"></div>
+          <div style="width:30px; height:60px; background:#222; border-radius:6px"></div>
+          <div style="width:30px; height:80px; background:#222; border-radius:6px"></div>
+          <div style="width:30px; height:40px; background:#222; border-radius:6px"></div>
+          <div style="width:30px; height:70px; background:#222; border-radius:6px"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-weight:700; margin-bottom:8px;">Pro tips</div>
+        <ul class="muted" style="margin:0; padding-left:18px;">
+          <li>Pick 1 mission per sprint</li>
+          <li>Block phone notifications</li>
+          <li>Celebrate small wins</li>
+        </ul>
+      </div>
+    </aside>
+
+  </div>
+
+<script>
+  // CSRF setup for fetch
+  function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+          const cookies = document.cookie.split(';');
+          for (let i = 0; i < cookies.length; i++) {
+              const cookie = cookies[i].trim();
+              if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                  cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                  break;
+              }
+          }
+      }
+      return cookieValue;
+  }
+  const csrftoken = getCookie('csrftoken');
+
+  // timer logic
+  let defaultMinutes = 25;
+  let secondsLeft = defaultMinutes * 60;
+  let timerInterval = null;
+  let currentSessionId = null;
+  function formatTime(s) {
+    const mm = String(Math.floor(s/60)).padStart(2,'0');
+    const ss = String(s%60).padStart(2,'0');
+    return `${mm}:${ss}`;
+  }
+  function updateDisplay(){ document.getElementById('timer-display').innerText = formatTime(secondsLeft); }
+
+  document.getElementById('start-btn').addEventListener('click', async () => {
+    if (timerInterval) return;
+    timerInterval = setInterval(()=> {
+      if (secondsLeft <= 0) { clearInterval(timerInterval); timerInterval = null; return; }
+      secondsLeft -= 1;
+      updateDisplay();
+    }, 1000);
+
+    // start session on server (if a task selected)
+    const selected = document.querySelector('.task input[type=checkbox]:not(:checked)');
+    let taskEl = document.querySelector('.task[data-selected="true"]');
+    let taskId = taskEl ? taskEl.getAttribute('data-id') : null;
+
+    const resp = await fetch("{% url 'UserAuth:start_session' %}", {
+      method: 'POST',
+      headers: {'Content-Type':'application/json', 'X-CSRFToken': csrftoken},
+      body: JSON.stringify({task_id: taskId})
+    });
+    const data = await resp.json();
+    currentSessionId = data.session_id;
+  });
+
+  document.getElementById('pause-btn').addEventListener('click', () => {
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  });
+
+  document.getElementById('end-btn').addEventListener('click', async () => {
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+    if (currentSessionId) {
+      await fetch(`/end-session/${currentSessionId}/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': csrftoken}
+      });
+      currentSessionId = null;
+    }
+    secondsLeft = defaultMinutes * 60;
+    updateDisplay();
+    location.reload(); // quick state update; replace later with AJAX updates
+  });
+
+  // task toggle & selection
+  document.querySelectorAll('.task-check').forEach(cb => {
+    cb.addEventListener('change', async (e)=>{
+      const taskEl = e.target.closest('.task');
+      const taskId = taskEl.getAttribute('data-id');
+      await fetch(`toggle-task/${taskId}/`, {
+        method: 'POST', headers: {'X-CSRFToken': csrftoken}
+      });
+      location.reload();
+    });
+  });
+
+  // delete btn
+  document.querySelectorAll('.del-btn').forEach(btn => {
+    btn.addEventListener('click', async (e)=>{
+      const id = e.currentTarget.getAttribute('data-id');
+      if (!confirm('Delete task?')) return;
+      const resp = await fetch(`delete-task/${id}/`, {method:'POST', headers: {'X-CSRFToken': csrftoken}});
+      location.reload();
+    });
+  });
+
+  // select a task for focus (click the task -> toggles selected styling)
+  document.querySelectorAll('.task').forEach(task => {
+    task.addEventListener('click', (e)=>{
+      if(e.target.tagName.toLowerCase() === 'input' || e.target.classList.contains('del-btn')) return;
+      document.querySelectorAll('.task').forEach(t => t.removeAttribute('data-selected'));
+      task.setAttribute('data-selected','true');
+    });
+  });
+
+  // reflection save (local demo)
+  document.getElementById('save-reflection').addEventListener('click', ()=>{
+    alert('Reflection saved locally (demo). Build backend route to persist reflections.');
+  });
+
+  // reset timer
+  document.getElementById('reset-timer').addEventListener('click', ()=>{
+    secondsLeft = defaultMinutes * 60; updateDisplay();
+  });
+
+  updateDisplay();
+</script>
+
+</body>
+</html>
+
+
+<div class="task-list">
+      {% for task in tasks %}
+      <div class="task {% if task.completed %}completed{% endif %}">
+        <input type="checkbox" {% if task.completed %}checked{% endif %} 
+               onchange="location.href='{% url 'UserAuth:toggle_task' task.id %}'">
+        <span>{{ task.title }}</span>
+        <form method="post" action="{% url 'UserAuth:delete_task' task.id %}">
+          {% csrf_token %}
+          <button type="submit">🗑</button>
+        </form>
+      </div>
+      {% empty %}
+      <p style="color:var(--muted); text-align:center;">No tasks yet. Add something small 💭</p>
+      {% endfor %}
+    </div>
+  </div>
+
+
+  <!- <main class="main">
+      <h1>Inbox</h1>
+      <div class="task-list">
+        {% for task in tasks %}
+        <div class="task {% if task.completed %}completed{% endif %}">
+          <input type="checkbox" {% if task.completed %}checked{% endif %}>
+          <span>{{ task.title }}</span>
+          <form method="post" action="{% url 'UserAuth:delete_task' task.id %}">
+            {% csrf_token %}
+            <button type="submit" class="delete-btn">🗑️</button>
+          </form>
+        </div>
+        {% empty %}
+        <p class="muted">No tasks yet — add one to get started ✨</p>
+        {% endfor %}
+      </div>
+    </main> -->
+
+    <td>
+                        /* <a href="{% url 'edit_task' task.id %}" class="action-button" style="text-decoration: none; color: #ff6600;">Edit</a> | */
+                        /* <a href="{% url 'delete_task' task.id %}" class="action-button" style="color: #ff4444; text-decoration: none;">Delete</a> */
+                    </td>
+                    vvv<script>
+// AJAX toggle for task completion
+document.querySelectorAll('.task input[type="checkbox"]').forEach(cb => {
+  cb.addEventListener('change', function(){
+    fetch("{% url 'UserAuth:toggle_complete' 0 %}".replace('0', this.dataset.taskId), {
+      method: 'POST',
+      headers: {'X-CSRFToken': '{{ csrf_token }}'}
+    }).then(res => location.reload());
+  });
+});
+</script>

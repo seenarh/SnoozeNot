@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SnoozeNot — Log in</title>
+  <style>
+  :root {
+    --bg: #0d0d0f;
+    --card: #1a1b1e;
+    --muted: #9ca3af;
+    --accent: #ff7a2d; /* warm orange pop */
+    --accent-2: #ffb347;
+    --accent-3: #f9fafb;
+    --radius: 12px;
+    --shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  }
+
+  html, body {
+    height: 100%;
+    margin: 0;
+    background: linear-gradient(180deg, var(--bg), #111);
+    color: var(--accent-3);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .center {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 28px;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 820px;
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    display: flex;
+    gap: 28px;
+    overflow: hidden;
+  }
+
+  /* Left promo */
+  .left {
+    flex: 1.2;
+    padding: 34px;
+    background: linear-gradient(180deg, rgba(255,122,45,0.08), rgba(255,179,71,0.05));
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  .logo {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 18px;
+    box-shadow: 0 8px 20px rgba(255, 122, 45, 0.25);
+  }
+
+  .title {
+    font-size: 1.6rem;
+    margin: 0;
+    color: var(--accent-3);
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .subtitle {
+    color: var(--muted);
+    margin-top: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+
+  /* Right form */
+  .right {
+    width: 380px;
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+    background: linear-gradient(180deg, rgba(20,20,22,0.8), rgba(26,27,30,0.9));
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  label {
+    font-size: 0.85rem;
+    color: var(--accent-3);
+    font-weight: 700;
+  }
+
+  input, select, textarea {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #2f3136;
+    font-size: 0.95rem;
+    background: #111215;
+    color: #fff;
+    outline: none;
+  }
+
+  input:focus, textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 6px 18px rgba(255, 122, 45, 0.15);
+  }
+
+  .helper {
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+
+  .errors {
+    color: #f87171;
+    font-size: 0.85rem;
+  }
+
+  .actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 8px;
+  }
+
+  .btn {
+    flex: 1;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 0;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 800;
+    cursor: pointer;
+    text-align: center;
+    box-shadow: 0 8px 24px rgba(255, 122, 45, 0.25);
+    transition: all 0.2s ease;
+  }
+
+  .btn:hover {
+    background: var(--accent-2);
+  }
+
+  .btn.ghost {
+    background: transparent;
+    color: var(--accent-3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .small {
+    font-size: 0.9rem;
+  }
+
+  .foot {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-top: 8px;
+  }
+
+  @media (max-width: 880px) {
+    .card { flex-direction: column; max-width: 520px; }
+    .right { width: auto; }
+    .left { padding: 22px; }
+    .logo { width: 48px; height: 48px; }
+  }
+
+  @media (max-width: 480px) {
+    .center { padding: 18px; }
+    .title { font-size: 1.25rem; }
+    .subtitle { font-size: 0.88rem; }
+    .btn { padding: 12px; }
+  }
+</style>
+
+</head>
+<body>
+  <div class="center">
+    
+      <div class="right" aria-label="Log in form">
+        <h3 style="margin:0 0 6px 0;font-size:1.05rem;color:var(--accent-3)">Log In to your account</h3>
+
+        {% if form.non_field_errors %}
+          <div class="errors">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          <div class="field">
+            <label for="{{ form.username.id_for_label }}">Username</label>
+            {{ form.username }}
+            {% if form.username.errors %}<div class="errors">{{ form.username.errors }}</div>{% endif %}
+          </div>
+
+          <div class="field">
+            <label for="{{ form.password.id_for_label }}">Password</label>
+            {{ form.password }}
+            {% if form.password.errors %}<div class="errors">{{ form.password.errors }}</div>{% endif %}
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div class="helper"><label style="font-weight:600"><input type="checkbox" name="remember"> Keep me signed in</label></div>
+            <div><a href="#" style="color:var(--accent-3);font-weight:700;text-decoration:none">Forgot?</a></div>
+          </div>
+          <div class="actions">
+            <button type="submit" class="btn small" style="width:100%;">Log in</button>
+          </div>
+        </form>
+
+        <div class="foot">
+          You don't have an Account? <a href="{% url 'UserAuth:signup' %}"><button type="sumbit" class="small btn">Sign Up</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
