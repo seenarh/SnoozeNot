@@ -2,14 +2,12 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 
-# Task Categories
 CATEGORY_CHOICES = [
     ('work', 'Work'),
     ('study', 'Study'),
     ('personal', 'Personal'),
     ('others', 'Others'),
 ]
-
 
 class Task(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -28,8 +26,8 @@ class Task(models.Model):
 
 class FocusSession(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='focus_sessions')
-    task = models.ForeignKey(Task, on_delete=models.CASCADE)
-    start_time = models.DateTimeField(default=timezone.now)
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='sessions')  # <-- important
+    start_time = models.DateTimeField()
     end_time = models.DateTimeField(null=True, blank=True)
     minutes = models.PositiveIntegerField(null=True, blank=True)
 

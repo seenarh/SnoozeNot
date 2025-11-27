@@ -316,9 +316,9 @@
 
     <nav>
       <a href="{% url 'UserAuth:Inbox' %}" class="active"><i>📥</i> Inbox</a>
-      <a href="#"><i>📅</i> Today</a>
-      <a href="#"><i>📆</i> Upcoming</a>
-      <a href="#"><i>✅</i> Completed</a>
+      <a href="{% url 'UserAuth:Today' %}"><i>📅</i> Today</a>
+      <a href="{% url 'UserAuth:Upcoming' %}"><i>📆</i> Upcoming</a>
+      <a href="{% url 'UserAuth:Completed' %}"><i>✅</i> Completed</a>
     </nav>
   </aside>
 
@@ -327,18 +327,15 @@
     <!-- Main Tasks Section -->
    <main class="main">
     <h1 style="
-  font-style: normal;
-  font-size: 52px;
-  font-weight: 1000;
-  letter-spacing: -1px;
-  background:color(#ff6600 red green blue));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color; transparent;
-  margin-bottom: 20px;
-  text-align: left;
-  "> 
-Your Dashboard</h1>
-
+     font-style: normal;
+     font-size: 52px;
+     font-weight: 1000;
+     letter-spacing: -1px;
+     background:color(#ff6600 red green blue);
+     webkit-background-clip: text-webkit-text-fill-color-transparent;
+     margin-bottom: 20px;
+     text-align: left;  ">Your Dashboard</h1>
+ 
 <div class="dashboard-widgets-container" style="
     display: flex;
     gap: 20px; /* Spacing between the widgets */
@@ -368,9 +365,9 @@ Your Dashboard</h1>
                 font-size: 4em;
                 font-weight: 700;
                 line-height: 1;
-                /* Django logic to change color if count is > 0 */
-                color: {% if inbox_count > 0 %}#ff6600{% else %}#f0f0f0{% endif %};
-            ">
+                
+                /* Django logic to change color if count is > 0 /*
+                color: {% if Inbox_count > 0 %}#ff6600{% else %}#f0f0f0{% endif %};">
                 {{ inbox_count }}
             </div>
             
@@ -500,11 +497,17 @@ Your Dashboard</h1>
                 <span style="
                     font-size: 0.8em;
                     /* Conditional priority color based on task object attribute */
-                    color: {% if task.priority == 'HIGH' %}#ff6600{% elif task.priority == 'LOW' %}#aaaaaa{% else %}#f0f0f0{% endif %};
-                ">
+                    color: 
+                    {% if task.priority == 'HIGH' %}
+                      #ff6600
+                    {% elif task.priority == 'LOW' %}
+                      #aaaaaa
+                    {% else %}
+                    #f0f0f0 
+                    {% endif %}; ">
                     {{ task.priority|default:"No Priority" }}
                 </span>
-            </div>
+            </div> 
             <span style="color: #aaaaaa; font-size: 0.8em; margin-left: 15px;">
                 {{ task.due_time|default:"No Time" }}
             </span>

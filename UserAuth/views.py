@@ -5,6 +5,9 @@ from django.utils import timezone
 from django.db.models import Sum
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
+from datetime import date 
+from django.shortcuts import render
+
 
 from .models import Task, FocusSession
 from .forms import SignUpForm, LoginForm
@@ -126,27 +129,47 @@ def todo_list(request):
 
 @login_required
 def Inbox_view(request):
+    # Get all incomplete tasks for the logged-in user
     tasks = Task.objects.filter(user=request.user, completed=False).order_by('-created_at')
+
+    # Attach the latest session (if any) to each task
+    for task in tasks:
+        latest_session = task.sessions.order_by('-start_time').first()  # could be None
+        task.latest_session = latest_session
+
     return render(request, 'UserAuth/Inbox.html', {'tasks': tasks})
 
-@login_required
-@require_POST
-def add_task(request):
-    title = request.POST.get('title', '').strip()
-    details = request.POST.get('details', '').strip()
-    category = request.POST.get('category', '').strip()
-    
 
-    if not title:
+@login_required
+def add_task(request):
+    if request.method == "POST":
+        title = request.POST.get("title", "").strip()
+        details = request.POST.get("details", "").strip()
+        category = request.POST.get("category", "work")
+        
+        start_time = request.POST.get("start_datetime")
+        end_time = request.POST.get("end_datetime")
+
+        # 1️⃣ Create the Task
+        task = Task.objects.create(
+            user=request.user,
+            title=title,
+            details=details,
+            categories=category,
+        )
+
+        # 2️⃣ Create a FocusSession using chosen start/end time
+        if start_time:
+            FocusSession.objects.create(
+                user=request.user,
+                task=task,
+                start_time=start_time,
+                end_time=end_time
+            )
+
         return redirect('UserAuth:Inbox')
 
-    Task.objects.create(
-        title=title,
-        details=details,
-        categories=category,
-        user=request.user
-    )
-    return redirect('UserAuth:Inbox')
+    return render(request, "UserAuth/add_task.html")
 
 @login_required
 @require_POST
@@ -199,3 +222,61 @@ def delete_task(request, pk):
 @require_POST
 def edit_task(request, pk):
     task = get_object_or_404(Task, pk=pk, user=request.user)
+    title = request.POST.get('title', '').strip()
+    details = request.POST.get('details', '').strip()   
+    return render(request, 'UserAuth/edit_task.html', {'task': task})
+    
+# views.py
+from django.shortcuts import render
+from django.utils import timezone
+from datetime import datetime, time
+from .models import Task
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def Today_view(request):
+    # get the current local date
+    today = timezone.localdate()
+
+    # define start and end of today in local time
+    start_of_day = datetime.combine(today, time.min)  # 00:00:00
+    end_of_day = datetime.combine(today, time.max)    # 23:59:59.999999
+
+    # make them timezone-aware
+    start_of_day = timezone.make_aware(start_of_day)
+    end_of_day = timezone.make_aware(end_of_day)
+
+    # filter tasks due anytime today
+    tasks = Task.objects.filter(
+        user=request.user,
+        due_time__range=(start_of_day, end_of_day)
+    ).order_by('due_time')
+
+    return render(request, 'UserAuth/Today.html', {'tasks': tasks})
+
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+from .models import Task
+
+@login_required
+def today_view(request):
+    today = timezone.localdate()
+    tasks = Task.objects.filter(
+        user=request.user,
+        completed=False,
+        due_time__date=today
+    ).order_by('due_time')
+    return render(request, 'UserAuth/Today.html', {'tasks': tasks, 'title': 'Today'})
+
+@login_required
+def upcoming_view(request):
+    today = timezone.localdate()
+    tasks = Task.objects.filter(user=request.user, due_time__date__gt=today, completed=False).order_by('due_time')
+    return render(request, "userauth/Upcoming.html", {"tasks": tasks})
+
+@login_required
+def completed_view(request):
+    tasks = Task.objects.filter(user=request.user, completed=True).order_by('-created_at')
+    return render(request, "userauth/Completed.html", {"tasks": tasks})
+# ...existing code...
