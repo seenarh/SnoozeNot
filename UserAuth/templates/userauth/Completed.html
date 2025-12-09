@@ -4,63 +4,73 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Completed Tasks — SnoozeNot</title>
-
+<title>{{ title }} Tasks — SnoozeNot</title>
 <style>
   body { background:#0b0b0b; color:#eaeaea; font-family:"Inter",sans-serif; margin:0; padding:25px; }
-  .container { width: 100%; max-width:1100px; margin:0 auto; padding:0 30px; }
+  .container { width:100%; max-width:1100px; margin:0 auto; padding:0 30px; }
 
   h1 { color:#ff6600; font-size:2rem; font-weight:700; margin-bottom:25px; border-bottom:2px solid #1e1e1e; padding-bottom:10px; }
 
   table { width:100%; border-collapse:collapse; border-radius:8px; overflow:hidden; background:#0d0d0d; }
-  th { background:#1b1b1b; padding:14px 12px; text-transform:uppercase; font-size:.85rem; color:#bbb; text-align:left; }
+  th { background:#1b1b1b; padding:14px 12px; text-transform:uppercase; font-size:0.85rem; color:#bbb; text-align:left; }
   td { padding:14px 12px; border-bottom:1px solid #1b1b1b; }
   tr:hover { background:#121212; }
 
   .status-inprogress { color:#ff6600;font-weight:700; }
-  .status-completed { color:#aaa;font-weight:700; }
+  .status-completed { color:#16a34a;font-weight:700; }
 
-  .empty { text-align:center; padding:20px; color:#777; font-style:italic; }
+  .btn-back-dashboard { display:inline-block; margin-top:25px; padding:10px 16px; background:#ff6600; border:1px solid #ff6600; color:#000; border-radius:6px; font-weight:600; text-decoration:none; transition:0.2s; }
+  .btn-back-dashboard:hover { background:#e65a00; border-color:#e65a00; }
 
-  .btn-back-dashboard { margin-top:25px;padding:10px 16px;background:#ff6600;
-  border:1px solid #ff6600;color:#000;border-radius:6px;font-weight:600;text-decoration:none;display:inline-block }
-  .btn-back-dashboard:hover { background:#e65a00;border-color:#e65a00 }
+  .empty { text-align:center; padding:20px 0; color:#888; font-style:italic; }
+  .td-details { font-size:0.9rem; color:#aaa; display:block; margin-top:4px; }
 </style>
 </head>
-
 <body>
 <div class="container">
-<h1>Completed Tasks</h1>
+
+<h1>{{ title }} Tasks</h1>
 
 <table>
 <thead>
 <tr>
+
     <th>Task</th>
     <th>Status</th>
 </tr>
 </thead>
-
 <tbody>
 {% if tasks %}
-    {% for task in tasks %}
-    <tr>
-        <td>{{ task.title }}</td>
-        <td>
-            <span class="status-completed">Completed</span>
-        </td>
-    </tr>
-    {% endfor %}
+  {% for task in tasks %}
+  <tr>
+    <td>
+      {{ task.title }}
+      {% if task.details %}
+      <span class="td-details">{{ task.details }}</span>
+      {% endif %}
+    </td>
+    <td>
+      {% if task.completed %}
+        <span class="status-completed">Completed ✓</span>
+      {% else %}
+        <span class="status-inprogress">In Progress</span>
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
 {% else %}
-    <tr>
-        <td colspan="2" class="empty">
-            🎉<br>
-            No completed tasks yet<br>
-            <span style="font-size:0.9rem;opacity:0.8;">Finish tasks to see them here</span>
-        </td>
-    </tr>
+<tr>
+    <td colspan="2" class="empty">
+      {% if title == "Today" %}📅 No tasks for today.{% endif %}
+      {% if title == "Upcoming" %}⏳ No upcoming tasks.{% endif %}
+      {% if title == "Completed" %}🎉 No completed tasks yet.{% endif %}
+    </td>
+</tr>
 {% endif %}
 </tbody>
 </table>
+<pre style="color:white; background:#222; padding:20px; margin-top:20px;">
+</pre>
 
 <a href="{% url 'UserAuth:Dashboard' %}" class="btn-back-dashboard">Dashboard</a>
 </div>

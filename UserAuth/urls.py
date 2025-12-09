@@ -15,7 +15,7 @@ urlpatterns = [
     path('end_session', views.end_session, name='end_session'),
     path('delete_task/<int:pk>/', views.delete_task, name='delete_task'),
     path('Inbox/',views.Inbox_view, name='Inbox'),
-    path('today/',views.Today_view, name='Today'),
+    path('today/',views.today_view, name='Today'),
     path('upcoming/',views.upcoming_view, name='Upcoming'),
     path('completed/',views.completed_view, name='Completed'),
 ]

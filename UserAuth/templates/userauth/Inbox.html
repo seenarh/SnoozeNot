@@ -59,25 +59,21 @@
 
     <!-- Start Time -->
     <td>
-        {% if task.latest_session %}
-            {{ task.latest_session.start_time|date:"M d, Y H:i" }}
-        {% else %}
-            N/A
-        {% endif %}
-    </td>
+    {% if task.created_at %}
+        {{ task.created_at|date:"M d, Y H:i" }}
+    {% else %}
+        <span style="color:#888;">No date</span>
+    {% endif %}
+</td>
 
-    <!-- End Time -->
-    <td>
-        {% if task.latest_session %}
-            {% if task.latest_session.end_time %}
-                {{ task.latest_session.end_time|date:"M d, Y H:i" }}
-            {% else %}
-                <span style="color:#ff6600;">Running...</span>
-            {% endif %}
-        {% else %}
-            N/A
-        {% endif %}
-    </td>
+    <!-- Due Date -->
+<td>
+    {% if task.due_time %}
+        {{ task.due_time|date:"M d, Y H:i" }}
+    {% else %}
+        <span style="color:#888;">No date</span>
+    {% endif %}
+</td>
 
     <td class="status-{{ task.categories|lower }}">{{ task.categories|title }}</td>
 
