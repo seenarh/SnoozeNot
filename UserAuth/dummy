@@ -18,7 +18,7 @@
       --bg:#0f1113; --card:#17181a; --muted:#bfc2c6; --accent:#ff7a2d;
       --radius:14px;
     }
-    html,body{height:100%; margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Arial; background:var(--bg); color:#fff;}
+    /* html,body{height:100%; margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Arial; background:var(--bg); color:#fff;}
     .container{max-width:1100px; margin:28px auto; padding:20px; display:grid; grid-template-columns:1fr 360px; gap:20px;}
     header{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
     .logo{font-weight:700; font-size:20px; letter-spacing:0.6px; display:flex; gap:10px; align-items:center}
@@ -35,7 +35,7 @@
     .small-btn{padding:12px 16px; background:#00000022; border-radius:8px; cursor:pointer; color:#fff;}
     form.add{display:flex; gap:8px; margin-top:12px;}
     input, textarea, select{background:#00000022; border:1px solid rgba(255,255,255,0.02); color:#fff; padding:8px; border-radius:8px;}
-    .footer-actions{display:flex; gap:8px; margin-top:12px; flex-direction:column;}
+    .footer-actions{display:flex; gap:8px; margin-top:12px; flex-direction:column;} */
   </style>
 </head>
 <body>
@@ -206,19 +206,19 @@
     if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
   });
 
-  document.getElementById('end-btn').addEventListener('click', async () => {
-    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-    if (currentSessionId) {
-      await fetch(`/end-session/${currentSessionId}/`, {
-        method: 'POST',
-        headers: {'X-CSRFToken': csrftoken}
-      });
-      currentSessionId = null;
-    }
-    secondsLeft = defaultMinutes * 60;
-    updateDisplay();
-    location.reload(); // quick state update; replace later with AJAX updates
-  });
+  // .getElementById('end-btn').addEventListener('click', async () => {
+  //   if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  //   if (currentSessionId) {
+  //     await fetch(`/end-session/${currentSessionId}/`, {
+  //       method: 'POST',
+  //       headers: {'X-CSRFToken': csrftoken}
+  //     });
+  //     currentSessionId = documentnull;
+  //   }
+  //   secondsLeft = defaultMinutes * 60;
+  //   updateDisplay();
+  //   location.reload(); // quick state update; replace later with AJAX updates
+  // });
 
   // task toggle & selection
   document.querySelectorAll('.task-check').forEach(cb => {
@@ -311,11 +311,11 @@
                     vvv<script>
 // AJAX toggle for task completion
 document.querySelectorAll('.task input[type="checkbox"]').forEach(cb => {
-  cb.addEventListener('change', function(){
-    fetch("{% url 'UserAuth:toggle_complete' 0 %}".replace('0', this.dataset.taskId), {
-      method: 'POST',
-      headers: {'X-CSRFToken': '{{ csrf_token }}'}
-    }).then(res => location.reload());
-  });
-});
-</script>
+//   cb.addEventListener('change', function(){
+//     fetch("{% url 'UserAuth:toggle_complete' 0 %}".replace('0', this.dataset.taskId), {
+//       method: 'POST',
+//       headers: {'X-CSRFToken': '{{ csrf_token }}'}
+//     }).then(res => location.reload());
+//   });
+// });
+// </script>

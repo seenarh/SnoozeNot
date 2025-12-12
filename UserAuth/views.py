@@ -118,49 +118,49 @@ def add_task(request):
 
     return render(request, "UserAuth/add_task.html")
 
-@login_required
-@require_POST
-def toggle_task(request, pk):
-    task = get_object_or_404(Task, pk=pk, user=request.user)
-    task.completed = not task.completed
-    task.save()
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        return JsonResponse({'ok': True, 'completed': task.completed})
-    return redirect('UserAuth:Dashboard')
+# @login_required
+# @require_POST
+# def toggle_task(request, pk):
+#     task = get_object_or_404(Task, pk=pk, user=request.user)
+#     task.completed = not task.completed
+#     task.save()
+#     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+#         return JsonResponse({'ok': True, 'completed': task.completed})
+#     return redirect('UserAuth:Dashboard')
+
+
+# @login_required
+# @require_POST
+# def start_session(request):
+#     payload = json.loads(request.body.decode() or '{}')
+#     task_id = payload.get('task_id')
+#     task = None
+
+#     if task_id:
+#         try:
+#             task = Task.objects.get(pk=int(task_id), user=request.user)
+#         except Task.DoesNotExist:
+#             task = None
+
+#     s = FocusSession.objects.create(
+#         task=task,
+#         user=request.user,
+#         start_time=timezone.now()
+#     )
+#     return JsonResponse({'session_id': s.id, 'start_time': s.start_time.isoformat()})
+
+
+# @login_required
+# @require_POST
+# def end_session(request, session_id):
+#     session = get_object_or_404(FocusSession, pk=session_id, user=request.user)
+#     session.end_session()
+#     return JsonResponse({'ok': True, 'minutes': session.minutes or 0})
 
 
 @login_required
 @require_POST
-def start_session(request):
-    payload = json.loads(request.body.decode() or '{}')
-    task_id = payload.get('task_id')
-    task = None
-
-    if task_id:
-        try:
-            task = Task.objects.get(pk=int(task_id), user=request.user)
-        except Task.DoesNotExist:
-            task = None
-
-    s = FocusSession.objects.create(
-        task=task,
-        user=request.user,
-        start_time=timezone.now()
-    )
-    return JsonResponse({'session_id': s.id, 'start_time': s.start_time.isoformat()})
-
-
-@login_required
-@require_POST
-def end_session(request, session_id):
-    session = get_object_or_404(FocusSession, pk=session_id, user=request.user)
-    session.end_session()
-    return JsonResponse({'ok': True, 'minutes': session.minutes or 0})
-
-
-@login_required
-@require_POST
-def delete_task(request, pk):
+def delete_task(request, pk): 
     task = get_object_or_404(Task, pk=pk, user=request.user)
     task.delete()
     return JsonResponse({'ok': True})
