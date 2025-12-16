@@ -16,7 +16,6 @@ class Task(models.Model):
     due_time = models.DateTimeField(null=True, blank=True)
     categories = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='others')
     completed = models.BooleanField(default=False)
-    created_at = models.DateTimeField(null=True, blank=True)
     focused_minutes = models.PositiveIntegerField(default=0)
     distraction_count = models.PositiveIntegerField(default=0)
     reminder_time = models.DateTimeField(null=True, blank=True)

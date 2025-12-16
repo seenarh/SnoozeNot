@@ -43,25 +43,40 @@ def logout_view(request):
     logout(request)
     return redirect("UserAuth:login")
 
+from django.utils import timezone
+from django.db.models import Q
+
+from django.utils import timezone
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from django.db.models import Q
+from .models import Task
+
 @login_required
 def Dashboard_view(request):
-    user_tasks = Task.objects.filter(user=request.user)
+    today = timezone.localdate()
     
-    # 1. Base Statistics Calculations
-    total_tasks = user_tasks.count()
-    tasks_done = user_tasks.filter(completed=True).count()
-    
-    # Time/Distraction (Aggregating across ALL tasks, consider focusing only on recent/relevant ones)
-    time_focused = user_tasks.aggregate(total=Sum('focused_minutes'))['total'] or 0
-    distraction_count = user_tasks.aggregate(total=Sum('distraction_count'))['total'] or 0
+    # Include tasks due today OR tasks with no due_time
+    today_tasks = Task.objects.filter(
+        user=request.user,
+        completed=False
+    ).filter(
+        Q(due_time__date=today) | Q(due_time__isnull=True)
+    ).order_by('due_time')
 
+    tasks_remaining_count = today_tasks.count()
     
-    # CORRECT RENDER CALL: Pass the single 'context' dictionary
-    return render(request, 'UserAuth/Dashboard.html')
+    inbox_count = Task.objects.filter(user=request.user, completed=False).count()
+    
+    return render(request, 'UserAuth/dashboard.html', {
+        'today_tasks': today_tasks,
+        'tasks_remaining_count': tasks_remaining_count,
+        'inbox_count': inbox_count,
+    })
 
 @login_required
 def todo_list(request):
-    tasks = Task.objects.filter(user=request.user).order_by('-created_at')
+    tasks = Task.objects.filter(user=request.user).order_by('-due_time')
 
     # handle new task
     if request.method == 'POST': 
@@ -77,7 +92,6 @@ def todo_list(request):
                 title=title,
                 details=details,
                 categories=category,
-                created_at=created_at,
                 due_time=due_time,
             ) 
         return redirect('UserAuth:todo_list')
@@ -88,7 +102,7 @@ def todo_list(request):
 def Inbox_view(request):
     # Get all incomplete tasks for the logged-in user
     tasks = Task.objects.filter(user=request.user,
-                                 completed=False).order_by('-created_at')
+                                 completed=False).order_by('-due_time')
 
 
     return render(request, 'UserAuth/Inbox.html', {'tasks': tasks})
@@ -100,7 +114,6 @@ def add_task(request):
         title = request.POST.get("title", "").strip()
         details = request.POST.get("details", "").strip()
         category = request.POST.get("category", "work")
-        created_at = request.POST.get("start_datetime")
         due_time = request.POST.get("end_datetime")
 
         # 1️⃣ Create the Task
@@ -109,7 +122,6 @@ def add_task(request):
             title=title,
             details=details,
             categories=category,
-            created_at=created_at,
             due_time=due_time,
         )
 
@@ -118,15 +130,15 @@ def add_task(request):
 
     return render(request, "UserAuth/add_task.html")
 
-# @login_required
-# @require_POST
-# def toggle_task(request, pk):
-#     task = get_object_or_404(Task, pk=pk, user=request.user)
-#     task.completed = not task.completed
-#     task.save()
-#     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-#         return JsonResponse({'ok': True, 'completed': task.completed})
-#     return redirect('UserAuth:Dashboard')
+@login_required
+@require_POST
+def toggle_task(request, pk):
+    task = get_object_or_404(Task, pk=pk, user=request.user)
+    task.completed = not task.completed
+    task.save()
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'ok': True, 'completed': task.completed})
+    return redirect('UserAuth:Dashboard')
 
 
 # @login_required
@@ -165,14 +177,33 @@ def delete_task(request, pk):
     task.delete()
     return JsonResponse({'ok': True})
 
+from django.shortcuts import get_object_or_404, redirect, render
+from django.contrib.auth.decorators import login_required
+from django.utils.dateparse import parse_datetime  # <- import this
+from .models import Task
+
 @login_required
-@require_POST
 def edit_task(request, pk):
     task = get_object_or_404(Task, pk=pk, user=request.user)
-    title = request.POST.get('title', '').strip()
-    details = request.POST.get('details', '').strip()   
+
+    if request.method == 'POST':
+        title = request.POST.get('title', '').strip()
+        details = request.POST.get('details', '').strip()
+        end_datetime_str = request.POST.get('end_datetime')
+
+        if title:
+            task.title = title
+            task.details = details
+
+            if end_datetime_str:
+                dt = parse_datetime(end_datetime_str)
+                task.due_time = dt
+
+            task.save()
+            return redirect('UserAuth:Inbox')  # redirect to inbox or task list
+
     return render(request, 'UserAuth/edit_task.html', {'task': task})
-    
+
 
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
@@ -187,7 +218,7 @@ def today_view(request):
     tasks = Task.objects.filter(
         user=request.user,
         completed=False
-    ).filter(created_at__date=today).order_by('-created_at')
+    ).filter(due_time__date=today).order_by('-due_time')
     
     return render(
         request,
@@ -225,7 +256,7 @@ def upcoming_view(request):
 
 @login_required
 def completed_view(request):
-    tasks = Task.objects.filter(user=request.user, completed=True).order_by('-created_at')
+    tasks = Task.objects.filter(user=request.user, completed=True).order_by('-due_time')
     return render(request, 'UserAuth/Completed.html', {'tasks': tasks, 'title': 'Completed'})
 
 @login_required

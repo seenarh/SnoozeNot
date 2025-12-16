@@ -356,41 +356,41 @@
         height: 180px;
         flex-shrink: 0; 
     ">
-        <div class="inbox-details">
-            <h3 class="widget-title" style="font-size: 1.1em; margin: 0 0 5px 0; color: #ffffff;">
-                Inbox
-            </h3>
-            
-            <div id="inbox-count-value" style="
-                font-size: 4em;
-                font-weight: 700;
-                line-height: 1;
-                
-                /* Django logic to change color if count is > 0 /*
-                color: {% if Inbox_count > 0 %}#ff6600{% else %}#f0f0f0{% endif %};">
-                {{ inbox_count }}
-            </div>
-            
-            <p id="inbox-description-text" style="color: #aaaaaa; font-size: 0.9em; margin-top: 5px;">
-                {% if inbox_count > 0 %}
-                    Items waiting to be processed
-<br>
-                {% else %}
-                    Inbox Zero!
-                {% endif %}
-            </p>
-        </div>
+        <div class="dashboard-widget inbox-widget" style="
+    background-color: #1e1e1e;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    color: #f0f0f0;
+    width: 300px;
+    text-align: center;
+    font-family: sans-serif;
+    margin-bottom: 20px;
+">
+    <h3 class="widget-title" style="font-size: 1.2em; margin: 0 0 10px 0; color: #ffffff;">
+        Inbox
+    </h3>
+
+    <div id="inbox-count-value" style="
+        font-size: 3em;
+        font-weight: 500;
+        line-height: 1;
+        color: {% if inbox_count > 0 %}#ff6600{% else %}#f0f0f0{% endif %};
+    ">
+        {{ inbox_count }}
+    </div>
+</div>
         <button class="btn btn-primary" style="
             background-color: #ff6600;
             color: #aaaaaa
             border: none;
-            padding: 10px 15px;
+            padding: 6px 10px;
             border-radius: 5px;
             cursor: pointer;
             font-weight: 600;
             text-align: center;
             width: 100%;
-            margin-top: 15px;
+            margin-top: 12px;
         ">
         <a href="{% url 'UserAuth:Inbox' %}" 
    style="
@@ -405,7 +405,7 @@
    Review Task
 </a>
 
-        </button>
+        </button> 
     </div>
 
     <div class="widget focus-log-widget" style="
@@ -454,7 +454,6 @@
         </div>
     </div>
 </div>
-
 <div class="widget today-quickview-widget" style="
     background-color: #1e1e1e;
     padding: 25px;
@@ -480,36 +479,42 @@
         align-items: center;
     ">
         Today's Top Tasks 🎯
-        <span style="font-size: 0.8em; color: #aaaaaa; font-weight: 400;">{{ tasks_remaining_count }} Tasks Remaining</span>
+        <span style="font-size: 0.8em; color: #aaaaaa; font-weight: 400;">
+            {{ tasks_remaining_count }} Tasks Remaining
+        </span>
     </h3>
 
     <div class="task-list-container" style="overflow-y: auto; padding-right: 5px; flex-grow: 1;">
-        
         {% for task in today_tasks %}
-        <div class="task-item" style="display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #2a2a2a;">
-            
-            <input type="checkbox" style="margin-right: 15px; width: 18px; height: 18px; accent-color: #ff6600; cursor: pointer;">
-            
+        <div class="task-item" style="
+            display: flex; 
+            align-items: center; 
+            padding: 10px 0; 
+            border-bottom: 1px solid #2a2a2a;
+        ">
+            <input type="checkbox" 
+                   {% if task.completed %}checked{% endif %}
+                   style="margin-right: 15px; width: 18px; height: 18px; accent-color: #ff6600; cursor: pointer;"
+                   onclick="toggleTask({{ task.id }})">
+
             <div class="task-details" style="flex-grow: 1;">
                 <p style="margin: 0; color: #ffffff; font-weight: 500; line-height: 1.2;">
                     {{ task.title }}
                 </p>
-                <span style="
+                <!-- <span style="
                     font-size: 0.8em;
-                    /* Conditional priority color based on task object attribute */
-                    color: 
-                    {% if task.priority == 'HIGH' %}
-                      #ff6600
-                    {% elif task.priority == 'LOW' %}
-                      #aaaaaa
-                    {% else %}
-                    #f0f0f0 
-                    {% endif %}; ">
+                    color: {% if task.priority == 'HIGH' %}#ff6600{% elif task.priority == 'LOW' %}#aaaaaa{% else %}#f0f0f0{% endif %};
+                ">
                     {{ task.priority|default:"No Priority" }}
-                </span>
-            </div> 
+                </span> -->
+            </div>
+
             <span style="color: #aaaaaa; font-size: 0.8em; margin-left: 15px;">
-                {{ task.due_time|default:"No Time" }}
+                {% if task.due_time %}
+                    {{ task.due_time|date:"M d, Y H:i" }}
+                {% else %}
+                    No Time
+                {% endif %}
             </span>
         </div>
         {% empty %}
@@ -519,6 +524,19 @@
         {% endfor %}
     </div>
 </div>
+
+<script>
+function toggleTask(taskId) {
+    fetch("{% url 'UserAuth:toggle_task' 0 %}".replace('0', taskId), {
+        method:"POST",
+        headers:{"X-CSRFToken":"{{ csrf_token }}","Content-Type":"application/json"},
+        body: JSON.stringify({})
+    }).then(res=>res.json()).then(data=>{
+        if(data.ok) location.reload();
+    });
+}
+</script>
+
 
 <div class="task-list">
         {% for task in tasks %}

@@ -10,7 +10,7 @@ urlpatterns = [
     path('dashboard/', views.Dashboard_view, name='Dashboard'),
     path('todo/',views.todo_list, name="todo_list"),
     path('add/',views.add_task, name="add_task"),
-    # path('toggle-task/<int:pk>/',views.toggle_task,name="toggle_task"),
+    path('toggle-task/<int:pk>/',views.toggle_task,name="toggle_task"),
     # path('start_session', views.start_session, name='start_session'),
     # path('end_session', views.end_session, name='end_session'),
     path('delete_task/<int:pk>/', views.delete_task, name='delete_task'),
@@ -18,4 +18,5 @@ urlpatterns = [
     path('today/',views.today_view, name='Today'),
     path('upcoming/',views.upcoming_view, name='Upcoming'),
     path('completed/',views.completed_view, name='Completed'),
+    path('tasks/edit/<int:pk>/', views.edit_task, name='edit_task')
 ] 
