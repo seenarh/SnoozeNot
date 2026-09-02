@@ -1,110 +1,142 @@
 {% extends "userauth/base_app.html" %}
+{% load my_filters %}
 
 {% block title %}Dashboard — SnoozeNot{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-  <h1>Hello, {{ user.username }}</h1>
-  <p>Here's what's on your plate today.</p>
+  <h1>{{ greeting }}</h1>
+  <p>{{ subtitle }}</p>
 </div>
 {% endblock %}
 
 {% block content %}
 <div class="stats-grid">
   <div class="stat-card">
-    <div class="stat-card-label">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-6l-2 3H10l-2-3H2"/></svg>
-      Inbox
+    <div class="stat-card-label">Progress today</div>
+    <div class="stat-card-value accent">{{ today_progress }}%</div>
+    <div class="progress-track" aria-hidden="true">
+      <span class="progress-fill" style="width: {{ today_progress }}%"></span>
     </div>
-    <div class="stat-card-value {% if inbox_count > 0 %}accent{% endif %}">{{ inbox_count }}</div>
-    <div class="stat-card-action">
-      <a class="btn btn-secondary btn-sm" href="{% url 'UserAuth:Inbox' %}">Review tasks</a>
+    <div class="stat-card-hint">
+      {% if plan_total %}
+        {{ plan_done_count }} of {{ plan_total }} on today's plan
+      {% elif finished_today %}
+        {{ finished_today }} finished today
+      {% else %}
+        No timed tasks on today's plan yet
+      {% endif %}
+    </div>
+    <div class="week-chart" aria-label="Tasks completed this week">
+      {% for day in week_days %}
+      <div class="week-col {% if day.is_today %}is-today{% endif %}" title="{{ day.label }}: {{ day.done }} done">
+        <div class="week-bar-wrap">
+          <div class="week-bar" style="height: {{ day.height }}%"></div>
+        </div>
+        <span>{{ day.label|slice:":1" }}</span>
+      </div>
+      {% endfor %}
     </div>
   </div>
 
   <div class="stat-card">
-    <div class="stat-card-label">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-      Due Today
-    </div>
-    <div class="stat-card-value accent">{{ tasks_remaining_count }}</div>
-    <div class="stat-card-action">
-      <a class="btn btn-secondary btn-sm" href="{% url 'UserAuth:Today' %}">View today</a>
-    </div>
+    <div class="stat-card-label">Focus time</div>
+    <div class="stat-card-value {% if focus_minutes_today %}accent{% endif %}">{{ focus_time_label }}</div>
+    <div class="stat-card-hint" id="focus-today">Save a sprint in Focus zone to add time</div>
   </div>
 
-  <div class="stat-card">
-    <div class="stat-card-label">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
-      Focus Time
-    </div>
-    <div class="stat-card-value">—</div>
-    <div class="stat-card-action">
-      <span class="text-muted" style="font-size:0.75rem;">Analytics coming soon</span>
-    </div>
-  </div>
+  <a class="stat-card" href="{% url 'UserAuth:Today' %}">
+    <div class="stat-card-label">Still open today</div>
+    <div class="stat-card-value {% if today_count > 0 %}accent{% endif %}">{{ today_count }}</div>
+    <div class="stat-card-hint">Open today's full list</div>
+  </a>
 </div>
 
 <div class="dashboard-grid">
   <div class="card">
     <div class="card-header">
       <div>
-        <div class="card-title">Today's Tasks</div>
-        <span class="text-muted" style="font-size:0.8125rem;">{{ tasks_remaining_count }} remaining</span>
+        <div class="card-title">Daily plan</div>
+        <span class="text-muted" style="font-size:0.8125rem;">
+          {% if plan_total %}{{ plan_done_count }} / {{ plan_total }} done{% elif overdue_tasks %}Clear the overdue list first{% else %}Nothing scheduled for today{% endif %}
+        </span>
       </div>
       <a class="btn btn-primary btn-sm" href="{% url 'UserAuth:todo_list' %}">+ Add</a>
     </div>
 
     <div class="task-list">
-      {% for task in today_tasks %}
-      <div class="task-item {% if task.completed %}completed{% endif %}">
-        <input type="checkbox" class="task-checkbox"
-               {% if task.completed %}checked{% endif %}
-               onclick="toggleTask({{ task.id }})">
-        <div class="task-content">
-          <p class="task-title">{{ task.title }}</p>
-          {% if task.categories %}
-          <div class="task-meta">
-            <span class="badge badge-{{ task.categories|lower }}">{{ task.categories|title }}</span>
-          </div>
-          {% endif %}
-        </div>
-        <span class="task-due">
-          {% if task.due_time %}{{ task.due_time|date:"g:i A" }}{% else %}No time{% endif %}
-        </span>
-      </div>
-      {% empty %}
-      <div class="empty-state">
-        <div class="empty-state-icon">🎉</div>
-        <p>Nothing scheduled for today. Enjoy the calm!</p>
-      </div>
+      {% if overdue_tasks %}
+      <p class="task-group-label">Overdue</p>
+      {% for task in overdue_tasks %}
+        {% include "userauth/partials/task_item.html" with show_checkbox=True show_due=True show_edit=True %}
       {% endfor %}
+      {% endif %}
+
+      {% if day_plan_tasks %}
+      {% if overdue_tasks %}<p class="task-group-label">Today</p>{% endif %}
+      {% for task in day_plan_tasks %}
+        {% include "userauth/partials/task_item.html" with show_checkbox=True show_due=True due_short=True show_edit=True %}
+      {% endfor %}
+      {% endif %}
+
+      {% if not overdue_tasks and not day_plan_tasks %}
+      <div class="empty-state">
+        <div class="empty-state-icon">📅</div>
+        <p>No daily plan yet. Add a reminder time and it will land here.</p>
+        <a class="btn btn-primary btn-sm" href="{% url 'UserAuth:todo_list' %}">Add a task</a>
+      </div>
+      {% endif %}
     </div>
   </div>
 
   <aside class="focus-panel">
-    <h2>Focus Zone</h2>
-    <p class="subtitle">Stay on track, avoid distractions</p>
-
-    <div class="mission-box">
-      <div class="mission-title">Today's Mission</div>
-      <div class="mission-text">Pick 1–3 key wins. Finish small, feel big.</div>
+    <div id="focus-zone"
+         data-log-url="{% url 'UserAuth:log_focus' %}"
+         data-task-id="{% if next_task %}{{ next_task.id }}{% endif %}">
+      <h2>Focus zone</h2>
+      <p class="subtitle">{% if next_task %}Sprint on {{ next_task.title }}{% else %}25-minute focus sprint{% endif %}</p>
+      <p class="focus-clock" id="focus-clock">25:00</p>
       <div class="focus-buttons">
-        <button class="btn-start" type="button">Start</button>
-        <button class="btn-pause" type="button">Pause</button>
-        <button class="btn-end" type="button">End</button>
+        <button type="button" class="btn-start" id="focus-start">Start</button>
+        <button type="button" class="btn-pause" id="focus-pause" disabled>Pause</button>
+        <button type="button" class="btn-end" id="focus-end">Save</button>
+      </div>
+      <p class="aside-note" id="focus-status">Start a sprint, then save it when you stop.</p>
+    </div>
+
+    <h2 class="focus-subhead">Up next</h2>
+    {% if next_task %}
+    <p class="subtitle">{{ next_task.due_time|relative_due }}</p>
+    <div class="mission-box {% if next_task_overdue %}is-overdue{% endif %}">
+      <div class="mission-title">{{ next_task.due_time|date:"g:i A" }}{% if next_task.due_time|date:"Y-m-d" != today|date:"Y-m-d" %} · {{ next_task.due_time|date:"M d" }}{% endif %}</div>
+      <div class="mission-text">{{ next_task.title }}</div>
+      {% if next_task.details %}
+      <p class="mission-snippet">{{ next_task.details|truncatechars:90 }}</p>
+      {% endif %}
+      <div class="mission-actions">
+        <button type="button" class="btn btn-primary btn-sm" onclick="toggleTask({{ next_task.id }})">Mark done</button>
+        <a class="btn btn-secondary btn-sm" href="{% url 'UserAuth:edit_task' next_task.id %}">Edit</a>
       </div>
     </div>
-
-    <div style="margin-top:20px;">
-      <div class="card-title" style="margin-bottom:12px;font-size:0.875rem;">Pro Tips</div>
-      <ul class="tips-list">
-        <li>Pick one mission per sprint</li>
-        <li>Block phone notifications</li>
-        <li>Celebrate small wins</li>
-        <li>Review progress weekly</li>
-      </ul>
+    {% else %}
+    <p class="subtitle">No timed task waiting.</p>
+    <div class="mission-box">
+      <div class="mission-text">Add a reminder time and it will show up here.</div>
     </div>
+    {% endif %}
+
+    {% if coming_up_task %}
+    <h2 class="focus-subhead">Coming up</h2>
+    <p class="subtitle">{{ coming_up_task.due_time|relative_due }}</p>
+    <div class="mission-box">
+      <div class="mission-title">{{ coming_up_task.due_time|date:"D, M d · g:i A" }}</div>
+      <div class="mission-text">{{ coming_up_task.title }}</div>
+      <div class="mission-actions">
+        <a class="btn btn-secondary btn-sm" href="{% url 'UserAuth:Upcoming' %}">See upcoming</a>
+      </div>
+    </div>
+    {% endif %}
+    <p class="aside-note">Keep this tab open to hear the bell.</p>
   </aside>
 </div>
 {% endblock %}

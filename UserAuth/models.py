@@ -14,8 +14,10 @@ class Task(models.Model):
     title = models.CharField(max_length=255)
     details = models.TextField(blank=True)
     due_time = models.DateTimeField(null=True, blank=True)
+    alarm_time = models.DateTimeField(null=True, blank=True)
     categories = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='others')
     completed = models.BooleanField(default=False)
+    completed_at = models.DateTimeField(null=True, blank=True)
     focused_minutes = models.PositiveIntegerField(default=0)
     distraction_count = models.PositiveIntegerField(default=0)
     reminder_time = models.DateTimeField(null=True, blank=True)
@@ -23,3 +25,13 @@ class Task(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class FocusLog(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    task = models.ForeignKey(Task, null=True, blank=True, on_delete=models.SET_NULL)
+    minutes = models.PositiveIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.user} · {self.minutes} min'

@@ -1,1 +1,27 @@
-{% extends "userauth/partials/task_list_page.html" %}
+{% extends "userauth/base_app.html" %}
+
+{% block title %}Upcoming — SnoozeNot{% endblock %}
+
+{% block page_header %}
+<div class="page-header">
+  <h1>Upcoming</h1>
+  <p>Tasks still ahead — later today and beyond.</p>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="task-board">
+  {% for group in task_groups %}
+    <p class="task-group-label task-board-group">{{ group.label }}</p>
+    {% for task in group.tasks %}
+      {% include "userauth/partials/task_item.html" with show_checkbox=True show_due=True show_actions=True show_status=True %}
+    {% endfor %}
+  {% empty %}
+  <div class="empty-state">
+    <div class="empty-state-icon">⏳</div>
+    <p>No upcoming tasks scheduled.</p>
+    <a class="btn btn-primary btn-sm" href="{% url 'UserAuth:todo_list' %}">Add a task</a>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

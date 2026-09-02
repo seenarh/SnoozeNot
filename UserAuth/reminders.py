@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from django.template.loader import render_to_string
@@ -12,6 +12,35 @@ from .models import Task
 
 logger = logging.getLogger(__name__)
 
+WEB_ALARM_OFFSETS = (
+    {'key': '1h', 'delta': timedelta(hours=1), 'label': '1 hour before due'},
+    {'key': '10m', 'delta': timedelta(minutes=10), 'label': '10 minutes before due'},
+)
+
+
+def format_minutes(total):
+    total = int(total or 0)
+    if total < 60:
+        return f'{total} min'
+    hours, minutes = divmod(total, 60)
+    if not minutes:
+        return '1 hr' if hours == 1 else f'{hours} hrs'
+    return f'{hours} hr {minutes} min'
+
+
+def web_alarm_schedule(due_time):
+    """Return automatic web-alarm times derived from a task due time."""
+    if not due_time:
+        return []
+    return [
+        {
+            'key': item['key'],
+            'when': due_time - item['delta'],
+            'label': item['label'],
+        }
+        for item in WEB_ALARM_OFFSETS
+    ]
+
 
 def get_user_timezone(tz_name=None):
     if tz_name:
@@ -20,6 +49,14 @@ def get_user_timezone(tz_name=None):
         except ZoneInfoNotFoundError:
             logger.warning('Unknown timezone %r, using default.', tz_name)
     return timezone.get_current_timezone()
+
+
+def parse_posted_datetime(post_data, date_key='due_date', time_key='due_time', tz_key='user_tz'):
+    return parse_due_date_time(
+        post_data.get(date_key),
+        post_data.get(time_key),
+        post_data.get(tz_key),
+    )
 
 
 def parse_due_date_time(date_value, time_value, tz_name=None):

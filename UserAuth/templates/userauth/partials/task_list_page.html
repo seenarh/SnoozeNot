@@ -10,58 +10,18 @@
 {% endblock %}
 
 {% block content %}
-<div class="table-card">
-  <table class="data-table">
-    <thead>
-      <tr>
-        <th>Task</th>
-        {% if title != "Completed" %}<th>Due</th>{% endif %}
-        <th>Status</th>
-        {% if title == "Completed" %}<th>Category</th>{% endif %}
-      </tr>
-    </thead>
-    <tbody>
-      {% for task in tasks %}
-      <tr>
-        <td>
-          <div style="font-weight:500;">{{ task.title }}</div>
-          {% if task.details %}
-          <div class="text-muted" style="font-size:0.8125rem;margin-top:2px;">{{ task.details|truncatechars:80 }}</div>
-          {% endif %}
-        </td>
-        {% if title != "Completed" %}
-        <td class="text-muted" style="font-size:0.8125rem;">
-          {% if task.due_time %}{{ task.due_time|date:"M d, Y · g:i A" }}{% else %}—{% endif %}
-        </td>
-        {% endif %}
-        <td>
-          {% if task.completed %}
-            <span class="badge badge-completed">Completed</span>
-          {% elif title == "Upcoming" %}
-            <span class="badge badge-upcoming">Upcoming</span>
-          {% else %}
-            <span class="badge badge-progress">In Progress</span>
-          {% endif %}
-        </td>
-        {% if title == "Completed" %}
-        <td><span class="badge badge-{{ task.categories|lower }}">{{ task.categories|title }}</span></td>
-        {% endif %}
-      </tr>
-      {% empty %}
-      <tr>
-        <td colspan="{% if title == 'Completed' %}3{% elif title == 'Today' %}3{% else %}3{% endif %}">
-          <div class="empty-state">
-            <div class="empty-state-icon">
-              {% if title == "Today" %}📅{% elif title == "Upcoming" %}⏳{% else %}🎉{% endif %}
-            </div>
-            <p>
-              {% if title == "Today" %}No tasks for today. Enjoy the calm!{% elif title == "Upcoming" %}No upcoming tasks scheduled.{% else %}No completed tasks yet — get going!{% endif %}
-            </p>
-          </div>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+<div class="task-board">
+  {% for task in tasks %}
+    {% include "userauth/partials/task_item.html" with show_checkbox=True show_due=True show_actions=True show_status=True %}
+  {% empty %}
+  <div class="empty-state">
+    <div class="empty-state-icon">
+      {% if title == "Today" %}📅{% elif title == "Upcoming" %}⏳{% else %}🎉{% endif %}
+    </div>
+    <p>
+      {% if title == "Today" %}No tasks for today. Enjoy the calm!{% elif title == "Upcoming" %}No upcoming tasks scheduled.{% else %}No completed tasks yet — get going!{% endif %}
+    </p>
+  </div>
+  {% endfor %}
 </div>
 {% endblock %}

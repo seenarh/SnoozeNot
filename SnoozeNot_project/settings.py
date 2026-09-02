@@ -85,6 +85,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'UserAuth.context_processors.email_settings',
+                'UserAuth.context_processors.web_alarms',
             ],
         },
     },

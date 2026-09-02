@@ -10,54 +10,15 @@
 {% endblock %}
 
 {% block content %}
-<div class="table-card">
-  <table class="data-table">
-    <thead>
-      <tr>
-        <th style="width:50px;">Done</th>
-        <th>Task</th>
-        <th>Due</th>
-        <th>Category</th>
-        <th style="width:120px;">Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for task in tasks %}
-      <tr>
-        <td>
-          <input type="checkbox" class="task-checkbox"
-                 {% if task.completed %}checked{% endif %}
-                 onclick="toggleTask({{ task.id }})">
-        </td>
-        <td>
-          <div style="font-weight:500;">{{ task.title }}</div>
-          {% if task.details %}
-          <div class="text-muted" style="font-size:0.8125rem;margin-top:2px;">{{ task.details|truncatechars:80 }}</div>
-          {% endif %}
-        </td>
-        <td class="text-muted" style="font-size:0.8125rem;">
-          {% if task.due_time %}{{ task.due_time|date:"M d, Y · g:i A" }}{% else %}No date{% endif %}
-        </td>
-        <td><span class="badge badge-{{ task.categories|lower }}">{{ task.categories|title }}</span></td>
-        <td>
-          <div class="task-actions">
-            <a class="task-link" href="{% url 'UserAuth:edit_task' task.id %}">Edit</a>
-            <button class="btn-icon" onclick="deleteTask({{ task.id }})" title="Delete">✕</button>
-          </div>
-        </td>
-      </tr>
-      {% empty %}
-      <tr>
-        <td colspan="5">
-          <div class="empty-state">
-            <div class="empty-state-icon">📥</div>
-            <p>Your inbox is empty. Add a task to get started!</p>
-            <a class="btn btn-primary btn-sm" href="{% url 'UserAuth:todo_list' %}" style="margin-top:16px;">Add Task</a>
-          </div>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+<div class="task-board">
+  {% for task in tasks %}
+    {% include "userauth/partials/task_item.html" with show_checkbox=True show_due=True show_actions=True %}
+  {% empty %}
+  <div class="empty-state">
+    <div class="empty-state-icon">📥</div>
+    <p>Your inbox is empty. Add a task to get started!</p>
+    <a class="btn btn-primary btn-sm" href="{% url 'UserAuth:todo_list' %}" style="margin-top:16px;">Add Task</a>
+  </div>
+  {% endfor %}
 </div>
 {% endblock %}

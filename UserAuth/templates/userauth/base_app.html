@@ -23,7 +23,7 @@
     {% endif %}
     {% if user.is_authenticated and smtp_configured and gmail_sender_mismatch %}
     <div class="flash-messages">
-      <div class="flash flash-warning">
+      <div class="flash flash-notice">
         <strong>Reminders are sent through your personal Gmail ({{ smtp_sender_email }}).</strong>
         Gmail always shows that account's profile photo, even when the From address is set to noreply.
         Create a dedicated SnoozeNot Gmail account, set its profile picture to your app logo,
@@ -32,8 +32,8 @@
     </div>
     {% elif user.is_authenticated and not smtp_configured %}
     <div class="flash-messages">
-      <div class="flash flash-warning">
-        <strong>Reminder emails are not being delivered to your inbox.</strong>
+      <div class="flash flash-notice">
+        <strong>Reminder emails are not being delivered yet.</strong>
         Add your Gmail and App Password to <code>.env</code>, then restart the server.
         {% if reminder_email %}
         Reminders will be sent to: <strong>{{ reminder_email }}</strong>
@@ -47,6 +47,26 @@
     {% block content %}{% endblock %}
   </main>
 </div>
+{% if web_alarms %}
+{{ web_alarms|json_script:"web-alarms-data" }}
+{% endif %}
+<div class="alarm-overlay" id="alarm-overlay">
+  <div class="alarm-modal" role="dialog" aria-modal="true" aria-labelledby="alarm-title">
+    <div class="alarm-bell" aria-hidden="true">🔔</div>
+    <p class="alarm-kicker">Alarm ringing</p>
+    <h2 id="alarm-title">Task reminder</h2>
+    <p class="alarm-details" id="alarm-details"></p>
+    <p class="alarm-when" id="alarm-when"></p>
+    <p class="alarm-tap-hint" id="alarm-tap-hint" hidden>Tap anywhere to ring the bell</p>
+    <div class="alarm-actions">
+      <button type="button" class="btn btn-primary" id="alarm-dismiss">Stop alarm</button>
+      <button type="button" class="btn btn-secondary" id="alarm-complete">Mark done</button>
+    </div>
+  </div>
+</div>
+<audio id="alarm-sound" loop preload="auto" playsinline>
+  <source src="{% static 'audio/alarm-bell.wav' %}" type="audio/wav">
+</audio>
 <script src="{% static 'js/snoozenot.js' %}"></script>
 {% block extra_js %}{% endblock %}
 {% endblock %}

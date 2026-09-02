@@ -1,0 +1,52 @@
+{% load my_filters %}
+<div class="task-item {% if task.completed %}completed{% endif %}">
+  {% if show_checkbox %}
+  <input type="checkbox" class="task-checkbox"
+         {% if task.completed %}checked{% endif %}
+         onclick="toggleTask({{ task.id }})"
+         title="{% if task.completed %}Mark incomplete{% else %}Mark done{% endif %}">
+  {% endif %}
+
+  <div class="task-content">
+    <p class="task-title">{{ task.title }}</p>
+    <div class="task-meta">
+      {% if task.categories %}
+      <span class="badge badge-{{ task.categories|lower }}">{{ task.categories|title }}</span>
+      {% endif %}
+      {% if task.details %}
+      <span class="task-snippet">{{ task.details|truncatechars:72 }}</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="task-aside">
+    {% if show_due %}
+    <div class="task-when">
+      <span class="task-due {{ task.due_time|due_urgency }}">
+        {% if task.due_time %}
+          {% if due_short %}{{ task.due_time|date:"g:i A" }}{% else %}{{ task.due_time|date:"M d · g:i A" }}{% endif %}
+        {% else %}
+          No date
+        {% endif %}
+      </span>
+    </div>
+    {% endif %}
+
+    {% if show_status %}
+      {% if task.completed %}
+        <span class="badge badge-completed">Done</span>
+      {% elif title == "Upcoming" %}
+        <span class="badge badge-upcoming">Upcoming</span>
+      {% endif %}
+    {% endif %}
+
+    {% if show_actions or show_edit %}
+    <div class="task-actions">
+      <a class="task-link" href="{% url 'UserAuth:edit_task' task.id %}">Edit</a>
+      {% if show_actions %}
+      <button class="btn-icon" type="button" onclick="deleteTask({{ task.id }})" title="Delete">✕</button>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
